@@ -29,7 +29,7 @@ enum SonarStates {S_Init, Sample} state1;
 int SonarTick(int);
 int distance_cm = 0;
 int distance_in = 0;
-
+bool strobe = false;
 enum RightButtonStates {RB_Init, WAIT_PRESS_2} state3;
 int RightButtonTick(int);
 bool calibrating = false;
@@ -65,6 +65,10 @@ int SonarTick(int state1) {
           distance_cm = 0;
         }
         
+        if (distance_cm > threshold_far) {
+          strobe = true;
+        }
+        
       return state1;
     }
 }
@@ -92,20 +96,20 @@ int setClockTick(int state2b){
   }
 }
 
-int RightButtonTick(int state) {
-  switch (state) { //Transitions
+int RightButtonTick(int state3) {
+  switch (state3) { //Transitions
     case RB_Init: 
-      state = WAIT_PRESS_2;
+      state3 = WAIT_PRESS_2;
       break;
     case WAIT_PRESS_2:
-      state = WAIT_PRESS_2;
+      state3 = WAIT_PRESS_2;
       break;
     default:
-      state = RB_Init;
+      state3 = RB_Init;
       break;
   }
 
-  switch (state) { //Actions
+  switch (state3) { //Actions
     case RB_Init:
       break;
     case WAIT_PRESS_2:
@@ -119,7 +123,7 @@ int RightButtonTick(int state) {
     default:
       break;
   }
-  return state;
+  return state3;
 }
 
 int checkTimeWarn(int state2c){

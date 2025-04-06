@@ -23,19 +23,20 @@ const unsigned long MINUTE_PERIOD = 60000;
 const unsigned long SETCLOCK_PERIOD = 100;
 const unsigned long TIMEWARN_PERIOD = 100;
 const unsigned long LEDCTRL_PERIOD = 200;
-
+const unsigned long SYSTEM_PERIOD = 1;
 
 const unsigned long GCD_PERIOD = 1;
 
 
 task tasks[NUM_TASKS];
 
+
 int threshold = 10;
 unsigned char threshold_far = (threshold*6)/5;
 unsigned char threshold_close = (threshold*4)/5;
 
 
-enum SonarStates {S_Init, Sample} state1;
+enum SonarStates {SO_Init, Sample} state1;
 int SonarTick(int);
 int distance_cm = 0;
 int distance_in = 0;
@@ -46,13 +47,62 @@ int RightButtonTick(int);
 enum MinuteState {MinOFF, MinCNT, MinBREAK} state2a;
 int currTime = 0;
 enum setClockState {clock1,clock2,clock3,clock4} state2b;
+int setClockTick(int);
 
 enum LEDControlStates {LEDoff, GreenON, RedON} state4; 
+int LEDControlTick(int);
+
+int checkTimeWarn(int);
+
+int MinuteTick(int);
 
 enum SystemStates {S_Init, S_OFF, S_ON, S_WAIT} state5;
 int SystemTick(int);
 bool clockOn = false;
 bool waitTime = false;
+
+void tasks_init() {
+  tasks[0].period = SONAR_TASK_PERIOD;
+  tasks[0].state = SO_Init;
+  tasks[0].elapsedTime = tasks[0].period;
+  tasks[0].TickFct = &SonarTick;
+
+  tasks[1].period = RIGHT_BUTTON_TASK_PERIOD;
+  tasks[1].state = RB_Init;
+  tasks[1].elapsedTime = tasks[1].period;
+  tasks[1].TickFct = &RightButtonTick;
+
+  tasks[2].period = MINUTE_PERIOD;
+  tasks[2].state = MinOFF;
+  tasks[2].elapsedTime = tasks[2].period;
+  tasks[2].TickFct = &MinuteTick;
+
+  tasks[3].period = SETCLOCK_PERIOD;
+  tasks[3].state = clock1;
+  tasks[3].elapsedTime = tasks[3].period;
+  tasks[3].TickFct = &setClockTick;
+
+  tasks[3].period = SETCLOCK_PERIOD;
+  tasks[3].state = clock1;
+  tasks[3].elapsedTime = tasks[3].period;
+  tasks[3].TickFct = &setClockTick;
+
+  tasks[4].period = TIMEWARN_PERIOD;
+  tasks[4].state = 0;
+  tasks[4].elapsedTime = tasks[4].period;
+  tasks[4].TickFct = &checkTimeWarn;
+
+  tasks[5].period = LEDCTRL_PERIOD;
+  tasks[5].state = LEDoff;
+  tasks[5].elapsedTime = tasks[5].period;
+  tasks[5].TickFct = &LEDControlTick;
+
+  tasks[6].period = SYSTEM_PERIOD;
+  tasks[6].state = S_Init;
+  tasks[6].elapsedTime = tasks[6].period;
+  tasks[6].TickFct = &SystemTick;
+  
+}
 
 int SystemTick(int state5) {
     switch (state5) {
@@ -183,7 +233,7 @@ int RightButtonTick(int state3) {
     case RB_Init:
       break;
     case WAIT_PRESS_2:
-      if (PINC & 0x01) {
+      if (PINC & (0x01 << 4)) {
         threshold = distance_cm;
         threshold_close = (threshold*4) / 5;
         threshold_far = (threshold*6) / 5;
@@ -199,11 +249,7 @@ int RightButtonTick(int state3) {
 
 
 int checkTimeWarn(int state2c){
-<<<<<<< HEAD
   checkClock(currTime); return 0;
-=======
-  checkClock(currTime);  return 0;
->>>>>>> 499132f6321fed00c29a0157cbeedf715e57de33
 }
 
 int LEDControlTick(int state4){

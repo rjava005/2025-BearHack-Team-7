@@ -25,10 +25,11 @@ void TimerISR() {
 
 int main(void) {
   DDRD = 0xFF; PORTD = 0x00;
-  DDRB = 0xFE; PORTB = 0xED;
-  DDRC = 0xFD; PORTC = 0x02;
+  DDRB = 0xFF; PORTB = 0x00;
+  DDRC = 0xCE; PORTC = 0x31; //00110001 -> 31 inverse (1100 1110) -> CE
   ADC_init(); // initializes ADC
   sonar_init(); // initializes sonar
+  tasks_init(); // initializes tasks
 
   TimerSet(GCD_PERIOD);
   TimerOn();

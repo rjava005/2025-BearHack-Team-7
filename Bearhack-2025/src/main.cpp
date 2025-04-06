@@ -1,7 +1,4 @@
-#include "timerISR.h"
-#include "helper.h"
-#include "periph.h"
-#include "serialATmega.h"
+#include "tasks.h"
 
 #define NUM_TASKS 3
 
@@ -52,3 +49,30 @@ int main(void) {
 }
 
 
+int SonarTick(int state) {
+  switch (state) {
+    case S_Init:
+      state = Sample;
+      distance_cm = 0;
+      distance_in = 0;
+      break;
+    case Sample:
+      state = Sample;
+      break;
+    default:
+      state = S_Init;
+      break;
+  } //Transitions
+
+  switch (state) {
+    case S_Init:
+      break;
+    case Sample:
+      distance_cm = (int) sonar_read();
+      if (distance_cm < 0) {
+        distance_cm = 0;
+      }
+      
+    return state;
+  }
+}

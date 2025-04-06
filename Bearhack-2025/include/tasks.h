@@ -2,6 +2,7 @@
 #include "helper.h"
 #include "periph.h"
 #include "serialATmega.h"
+#include "clock.h"
 
 #define NUM_TASKS 3
 
@@ -21,28 +22,30 @@ const unsigned long GCD_PERIOD = 1;
 
 task tasks[NUM_TASKS];
 
-enum SonarStates {S_Init, Sample};
+enum SonarStates {S_Init, Sample} state1;
 int SonarTick(int);
 int distance_cm = 0;
 int distance_in = 0;
 
+enum MinuteState {MinOFF, MinCNT} state2a;
+int currTime = 0;
 
-int SonarTick(int state) {
-    switch (state) {
+int SonarTick(int state1) {
+    switch (state1) {
       case S_Init:
-        state = Sample;
+        state1 = Sample;
         distance_cm = 0;
         distance_in = 0;
         break;
       case Sample:
-        state = Sample;
+        state1 = Sample;
         break;
       default:
-        state = S_Init;
+        state1 = S_Init;
         break;
     } //Transitions
   
-    switch (state) {
+    switch (state1) {
       case S_Init:
         break;
       case Sample:
@@ -51,6 +54,8 @@ int SonarTick(int state) {
           distance_cm = 0;
         }
         
-      return state;
+      return state1;
     }
 }
+
+int MinuteTick(int state2a){currTime++;}

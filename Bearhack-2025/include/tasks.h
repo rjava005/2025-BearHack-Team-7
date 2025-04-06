@@ -144,7 +144,7 @@ int MinuteTick(int state2a){
 }
 
 int setClockTick(int state2b){
-  int potRead = ADC_read(1);
+  int potRead = ADC_read(0);
   if (potRead <= 255){state2b = clock1;}
   else if (potRead>255&&potRead<=511) {state2b = clock2;}
   else if (potRead>511&&potRead<=767) {state2b = clock3;} 
@@ -191,12 +191,7 @@ int RightButtonTick(int state3) {
 
 
 int checkTimeWarn(int state2c){
-  checkClock(currTime);
-  switch(timeWarn){
-    case false: break;
-    case true:  PORTD = PORTD & (0x01 << 1); /*set light to red*/ break;
-  }
-  return 0;
+  checkClock(currTime); return 0;
 }
 
 int LEDControlTick(int state4){
@@ -223,10 +218,19 @@ int LEDControlTick(int state4){
     break;
   }
   switch (state4){
-    case LEDoff: break;
+    case LEDoff: 
     //SET BIT TO TURN ON GREEN LED
-    case GreenON: break;
-    case RedON: break;
+    PORTC = SetBit(PORTC, 1, 0);
+    PORTC = SetBit(PORTC, 2, 0);
+    break;
+    case GreenON: 
+    PORTC = SetBit(PORTC, 1, 1); //SET BIT TO TURN ON GREEN LED
+    PORTC = SetBit(PORTC, 2, 0); //SET BIT TO TURN OFF RED LED
+    break;
+    case RedON: 
+    PORTC = SetBit(PORTC, 1, 0); //SET BIT TO TURN OFF GREEN LED
+    PORTC = SetBit(PORTC, 2, 1); //SET BIT TO TURN ON RED LED
+    break;
   }
 }
 

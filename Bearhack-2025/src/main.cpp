@@ -1,11 +1,17 @@
 #include "tasks.h"
 
-//RIGHT BUTTON (CALIBRATION): PIN A0
-//SONAR: PIN A1
-//LEFT BUTTON (START TIMER PIN): PIN A2
+//RIGHT BUTTON (CALIBRATION + START): PIN C4
+//POTIENTIOMETER: PIN C0
 
-//RED: PIN D1
-//GREEN: PIN D0
+//RED: PIN C2
+//GREEN: PIN C1
+
+//ECHO: PIN D3
+//TRIGGER: PIN D4
+
+//BUZZER: PIN C5
+
+
 void TimerISR() {
   //TODO: sample inputs here
   for (unsigned int i = 0; i < NUM_TASKS; i++) { // Iterate through each task in the task array

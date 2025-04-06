@@ -145,14 +145,14 @@ int LEDControlTick(int state4){
     case GreenON:
       if (true/*not off*/){
         if (timeWarn){state4 = RedON;break;}
-        else if (true/*strobe*/){state4 = LEDoff;break;}
+        else if (strobe){state4 = LEDoff;break;}
       }
       else {state4 = LEDoff;}
       break;
     case RedON: 
       if (true/*not off*/){
         if (!timeWarn){state4 = GreenON;break;}
-        else if (true/*strobe*/){state4 = LEDoff;break;}
+        else if (strobe){state4 = LEDoff;break;}
       }
       else {state4 = LEDoff;}
     break;

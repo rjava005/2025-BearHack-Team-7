@@ -67,7 +67,7 @@ int MinuteTick(int state2a){
 }
 
 int setClockTick(int state2b){
-  int potRead = 0; // replace with ADC reading
+  int potRead = ADC_read(1);
   if (potRead <= 255){state2b = clock1;}
   else if (potRead>255&&potRead<=511) {state2b = clock2;}
   else if (potRead>511&&potRead<=767) {state2b = clock3;} 

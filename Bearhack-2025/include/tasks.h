@@ -16,7 +16,15 @@ typedef struct _task{
 
 //TASK PERIODS
 const unsigned long SONAR_TASK_PERIOD = 1000;
+
 const unsigned long RIGHT_BUTTON_TASK_PERIOD = 200;
+
+const unsigned long MINUTE_PERIOD = 60000;
+const unsigned long SETCLOCK_PERIOD = 100;
+const unsigned long TIMEWARN_PERIOD = 100;
+const unsigned long LEDCTRL_PERIOD = 200;
+
+
 const unsigned long GCD_PERIOD = 1;
 
 
@@ -191,12 +199,7 @@ int RightButtonTick(int state3) {
 
 
 int checkTimeWarn(int state2c){
-  checkClock(currTime);
-  switch(timeWarn){
-    case false: break;
-    case true:  PORTD = PORTD & (0x01 << 1); /*set light to red*/ break;
-  }
-  return 0;
+  checkClock(currTime);  return 0;
 }
 
 int LEDControlTick(int state4){
@@ -208,14 +211,15 @@ int LEDControlTick(int state4){
       } 
       break;
     case GreenON:
-      if (clockOn/*not off*/){
+      if (clockOn){
+
         if (timeWarn){state4 = RedON;break;}
         else if (strobe){state4 = LEDoff;break;}
       }
       else {state4 = LEDoff;}
       break;
     case RedON: 
-      if (clockOn/*not off*/){
+      if (clockOn){
         if (!timeWarn){state4 = GreenON;break;}
         else if (strobe){state4 = LEDoff;break;}
       }

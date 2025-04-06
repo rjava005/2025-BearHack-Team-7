@@ -3,6 +3,7 @@
 #include "periph.h"
 #include "serialATmega.h"
 #include "clock.h"
+#include "seg7.h"
 
 #define NUM_TASKS 3
 
@@ -24,6 +25,7 @@ const unsigned long SETCLOCK_PERIOD = 100;
 const unsigned long TIMEWARN_PERIOD = 100;
 const unsigned long LEDCTRL_PERIOD = 200;
 const unsigned long SYSTEM_PERIOD = 1;
+const unsigned long SEVENSEG_PERIOD = 50;
 
 const unsigned long GCD_PERIOD = 1;
 
@@ -60,6 +62,9 @@ enum SystemStates {S_Init, S_OFF, S_ON, S_WAIT} state5;
 int SystemTick(int);
 bool clockOn = false;
 bool waitTime = false;
+
+enum DispStates {DispOFF, Disp1, Disp2} state6;
+int dispSeg(int);
 
 void tasks_init() {
   tasks[0].period = SONAR_TASK_PERIOD;
@@ -102,6 +107,11 @@ void tasks_init() {
   tasks[6].elapsedTime = tasks[6].period;
   tasks[6].TickFct = &SystemTick;
   
+  tasks[7].period = SEVENSEG_PERIOD;
+  tasks[7].state = 0;
+  tasks[7].elapsedTime = tasks[7].period;
+  tasks[7].TickFct = &dispSegTick;
+  
 }
 
 int SystemTick(int state5) {
@@ -126,9 +136,11 @@ int SystemTick(int state5) {
       case S_WAIT:
         if (currTime == timelength + 1) {
           state5 = S_OFF;
-        } else if (currTime == timelength) {
+        } 
+        else if (currTime == timelength) {
           state5 = S_WAIT;
-        } else {
+        } 
+        else {
           state5 = S_ON;
         }
       default:
@@ -179,12 +191,13 @@ int SonarTick(int state1) {
         if (distance_cm < 0) {
           distance_cm = 0;
         }
-        
         if (distance_cm > threshold_far) {
           strobe = true;
-        } else if (distance_cm < threshold_far && distance_cm > threshold_close) {
+        } 
+        else if (distance_cm < threshold_far && distance_cm > threshold_close) {
           strobe = false;
-        } else if (distance_cm < threshold_close) {
+        } 
+        else if (distance_cm < threshold_close) {
           strobe = false;
         }
 
@@ -209,7 +222,7 @@ int setClockTick(int state2b){
   else {state2b = clock4;}
   
   switch (state2b) {
-    case clock1: setClock(1);
+    case clock1: setClock(1); state6 = DispOFF; 
     case clock2: setClock(2);
     case clock3: setClock(3);
     case clock4: setClock(4);
@@ -293,3 +306,19 @@ int LEDControlTick(int state4){
   }
 }
 
+int dispSegTick(int state6){
+  switch(state2a){
+    case MinOFF: state6 = 0; break;
+    case MinCNT: 
+      if (state6 == 2){
+        break;
+      }
+      else {state6 = 1; break;}
+  }
+  switch (state6){
+    case DispOFF: displaySev(0,1);
+    case Disp1: displaySev(currTime%10,1); state6 = 2;
+    case Disp2: displaySev(currTime/10,2); state6 = 1;
+    default: state6 = 1;
+  }
+}

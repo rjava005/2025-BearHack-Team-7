@@ -38,8 +38,7 @@ enum MinuteState {MinOFF, MinCNT} state2a;
 int currTime = 0;
 enum setClockState {clock1,clock2,clock3,clock4};
 
-enum LEDControlStates {DS_Init, D1, D2} state4; 
-int LEDControlTick(int);
+enum LEDControlStates {LEDoff, GreenON, RedON} state4; 
 
 int SonarTick(int state1) {
     switch (state1) {
@@ -135,5 +134,32 @@ int checkTimeWarn(int state2c){
   return 0;
 }
 
-
-
+int LEDControlTick(int state4){
+  switch (state4){
+    case LEDoff: 
+      if (true/*not off*/){
+        if (!timeWarn){state4 = GreenON;}
+        else {state4 = RedON;}
+      } 
+      break;
+    case GreenON:
+      if (true/*not off*/){
+        if (timeWarn){state4 = RedON;break;}
+        else if (true/*strobe*/){state4 = LEDoff;break;}
+      }
+      else {state4 = LEDoff;}
+      break;
+    case RedON: 
+      if (true/*not off*/){
+        if (!timeWarn){state4 = GreenON;break;}
+        else if (true/*strobe*/){state4 = LEDoff;break;}
+      }
+      else {state4 = LEDoff;}
+    break;
+  }
+  switch (state4){
+    case LEDoff: break;
+    case GreenON: break;
+    case RedON: break;
+  }
+}

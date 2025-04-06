@@ -16,10 +16,14 @@ typedef struct _task{
 
 //TASK PERIODS
 const unsigned long SONAR_TASK_PERIOD = 1000;
+
+const unsigned long RIGHT_BUTTON_TASK_PERIOD = 200;
+
 const unsigned long MINUTE_PERIOD = 60000;
 const unsigned long SETCLOCK_PERIOD = 100;
 const unsigned long TIMEWARN_PERIOD = 100;
 const unsigned long LEDCTRL_PERIOD = 200;
+
 
 const unsigned long GCD_PERIOD = 1;
 
@@ -39,15 +43,16 @@ bool strobe = false;
 enum RightButtonStates {RB_Init, WAIT_PRESS_2} state3;
 int RightButtonTick(int);
 
-enum MinuteState {MinOFF, MinCNT} state2a;
+enum MinuteState {MinOFF, MinCNT, MinBREAK} state2a;
 int currTime = 0;
-enum setClockState {clock1,clock2,clock3,clock4};
+enum setClockState {clock1,clock2,clock3,clock4} state2b;
 
 enum LEDControlStates {LEDoff, GreenON, RedON} state4; 
 
-enum SystemStates {S_Init, S_OFF, S_ON} state5;
+enum SystemStates {S_Init, S_OFF, S_ON, S_WAIT} state5;
 int SystemTick(int);
 bool clockOn = false;
+bool waitTime = false;
 
 int SystemTick(int state5) {
     switch (state5) {
@@ -62,12 +67,20 @@ int SystemTick(int state5) {
         }
         break;
       case S_ON:
-        if (state2a == MinOFF) {
-          state5 = S_OFF;
+        if (waitTime) {
+          state5 = S_WAIT;
         } else {
           state5 = S_ON;
         }
         break;
+      case S_WAIT:
+        if (currTime == timelength + 1) {
+          state5 = S_OFF;
+        } else if (currTime == timelength) {
+          state5 = S_WAIT;
+        } else {
+          state5 = S_ON;
+        }
       default:
         state5 = S_Init;
         break;
@@ -81,6 +94,11 @@ int SystemTick(int state5) {
         break;
       case S_ON:
         clockOn = true;
+        if (currTime == timelength) {
+          waitTime = true;
+        } else {
+          waitTime = false;
+        }
         break;
       default:
         break;
@@ -194,6 +212,7 @@ int LEDControlTick(int state4){
       break;
     case GreenON:
       if (clockOn){
+
         if (timeWarn){state4 = RedON;break;}
         else if (strobe){state4 = LEDoff;break;}
       }
@@ -209,7 +228,9 @@ int LEDControlTick(int state4){
   }
   switch (state4){
     case LEDoff: break;
+    //SET BIT TO TURN ON GREEN LED
     case GreenON: break;
     case RedON: break;
   }
 }
+

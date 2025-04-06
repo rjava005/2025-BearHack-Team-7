@@ -25,6 +25,8 @@ task tasks[NUM_TASKS];
 int threshold = 10;
 unsigned char threshold_far = (threshold*6)/5;
 unsigned char threshold_close = (threshold*4)/5;
+
+
 enum SonarStates {S_Init, Sample} state1;
 int SonarTick(int);
 int distance_cm = 0;
@@ -32,7 +34,6 @@ int distance_in = 0;
 bool strobe = false;
 enum RightButtonStates {RB_Init, WAIT_PRESS_2} state3;
 int RightButtonTick(int);
-bool calibrating = false;
 
 enum MinuteState {MinOFF, MinCNT} state2a;
 int currTime = 0;
@@ -40,6 +41,49 @@ enum setClockState {clock1,clock2,clock3,clock4};
 
 enum LEDControlStates {DS_Init, D1, D2} state4; 
 int LEDControlTick(int);
+
+enum SystemStates {S_Init, S_OFF, S_ON} state5;
+int SystemTick(int);
+bool clockOn = false;
+
+int SystemTick(int state5) {
+    switch (state5) {
+      case S_Init:
+        state5 = S_OFF;
+        break;
+      case S_OFF:
+        if (state2a == MinCNT) {
+          state5 = S_ON;
+        } else {
+          state5 = S_OFF;
+        }
+        break;
+      case S_ON:
+        if (state2a == MinOFF) {
+          state5 = S_OFF;
+        } else {
+          state5 = S_ON;
+        }
+        break;
+      default:
+        state5 = S_Init;
+        break;
+    } //Transitions
+
+    switch (state5) {
+      case S_Init:
+        break;
+      case S_OFF:
+        clockOn = false;
+        break;
+      case S_ON:
+        clockOn = true;
+        break;
+      default:
+        break;
+    }
+  return state5;
+}
 
 int SonarTick(int state1) {
     switch (state1) {
@@ -67,8 +111,13 @@ int SonarTick(int state1) {
         
         if (distance_cm > threshold_far) {
           strobe = true;
+        } else if (distance_cm < threshold_far && distance_cm > threshold_close) {
+          strobe = false;
+        } else if (distance_cm < threshold_close) {
+          strobe = false;
         }
-        
+
+
       return state1;
     }
 }
@@ -76,7 +125,7 @@ int SonarTick(int state1) {
 
 int MinuteTick(int state2a){
   switch (state2a){
-    case MinOFF: return 0;
+    case MinOFF: currTime = 0; return 0;
     case MinCNT: currTime++; return 0;
   }
 }
@@ -117,7 +166,8 @@ int RightButtonTick(int state3) {
         threshold = distance_cm;
         threshold_close = (threshold*4) / 5;
         threshold_far = (threshold*6) / 5;
-        calibrating = true;
+        
+        state2a = MinCNT;
       }
       break;
     default:
@@ -125,6 +175,7 @@ int RightButtonTick(int state3) {
   }
   return state3;
 }
+
 
 int checkTimeWarn(int state2c){
   checkClock(currTime);
